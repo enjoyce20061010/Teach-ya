@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>中文輸入測試</title>
+    <style>
+        body { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; padding: 20px; }
+        .test-area { border: 1px solid #ccc; padding: 10px; min-height: 100px; font-size: 16px; }
+        .info { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 中文輸入測試頁面</h1>
+    
+    <div class="info">
+        <h3>測試說明：</h3>
+        <p>1. 嘗試在下面的輸入框輸入中文</p>
+        <p>2. 檢查選字視窗是否正常顯示</p>
+        <p>3. 檢查中文文字是否清晰可見</p>
+    </div>
+    
+    <h3>輸入測試區域：</h3>
+    <div class="test-area" contenteditable="true">
+        在這裡輸入中文測試選字功能...
+        
+        測試文字：你好嗎？這是中文輸入測試。
+        The quick brown fox jumps over the lazy dog.
+        中文English混合測試。
+    </div>
+    
+    <div class="info">
+        <h3>常見問題：</h3>
+        <ul>
+            <li>選字視窗不見 → 字體設定問題</li>
+            <li>中文顯示方塊 → 缺少中文字體</li>
+            <li>輸入延遲 → 擴充功能衝突</li>
+        </ul>
+    </div>
+</body>
+</html>
+EOF && echo "測試檔案已建立！"

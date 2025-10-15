@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Layout Playground - Grok01 Template</title>
+    <style>
+        :root {
+            --col-tools: 240px;
+            --col-side: 320px;
+            --output-track: 45%;
+            --side-top-track: 55%;
+            --divider-size: 10px;
+            --panel-radius: 12px;
+            --panel-gap: 12px;
+            --bg-body: #f3f4f6;
+            --bg-panel: #ffffff;
+            --bg-divider: #d0d5dd;
+            --bg-divider-active: #2563eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+            background: var(--bg-body);
+            color: #1f2937;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 16px 24px;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 1.1rem;
+            letter-spacing: 0.03em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .workspace {
+            flex: 1;
+            display: grid;
+            grid-template-columns: var(--col-tools) var(--divider-size) 1fr var(--divider-size) var(--col-side);
+            grid-template-rows: 100%;
+            gap: var(--panel-gap);
+            padding: 16px 20px 24px;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border-radius: var(--panel-radius);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+            position: relative; /* For locking overlay */
+        }
+
+        .panel-header {
+            padding: 12px 16px;
+            font-weight: 600;
+            background: #0f172a;
+            color: #f8fafc;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .panel-body {
+            padding: 16px;
+            flex: 1;
+            overflow: auto;
+        }
+
+        .tools-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .tools-button {
+            padding: 10px 12px;
+            border: 1px solid #cbd5f5;
+            background: #eff6ff;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .tools-button:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
+
+        .scroller {
+            margin-top: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 8px;
+            max-height: 320px;
+            overflow: auto;
+            display: grid;
+            gap: 8px;
+        }
+
+        .thumb {
+            background: linear-gradient(135deg, #c4d2ff, #a5b4fc);
+            border-radius: 8px;
+            aspect-ratio: 4 / 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f2937;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer; /* Enable click for page switch */
+            transition: transform 0.2s;
+        }
+
+        .thumb:hover {
+            transform: scale(1.02);
+        }
+
+        .workspace-panel {
+            display: grid;
+            grid-template-rows: minmax(180px, var(--output-track)) var(--divider-size) 1fr;
+            gap: var(--panel-gap);
+        }
+
+        .panel--output,
+        .panel--input {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel--output .panel-body,
+        .panel--input .panel-body {
+            background: #f8fafc;
+            border-radius: 0 0 var(--panel-radius) var(--panel-radius);
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .panel--output placeholder,
+        .panel--input placeholder {
+            font-style: italic;
+        }
+
+        /* New: Canvas placeholders */
+        #canvasInput, #mindmapCanvas, #outputPreview {
+            width: 100%;
+            height: 100%;
+            background: #f0f0f0;
+            border: 1px dashed #ccc;
+            display: block;
+        }
+
+        .panel--side {
+            display: grid;
+            grid-template-rows: minmax(220px, var(--side-top-track)) var(--divider-size) 1fr;
+            gap: var(--panel-gap);
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #0ea5e9;
+            color: #f0f9ff;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            cursor: pointer; /* For mode switch */
+        }
+
+        .mode-indicator {
+            margin-left: auto;
+            font-size: 0.85rem;
+            opacity: 0.85;
+        }
+
+        .mindmap-canvas,
+        .code-preview {
+            flex: 1;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 16px;
+            font-family: "Fira Code", "Courier New", monospace;
+            overflow: auto;
+        }
+
+        .chat-body {
+            padding: 16px;
+            background: #f8fafc;
+            flex: 1;
+            overflow: auto;
+        }
+
+        .chat-input {
+            padding: 12px;
+            border: 1px solid #cbd5f5;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-family: inherit;
+            width: 100%;
+            resize: vertical;
+        }
+
+        .divider {
+            background: var(--bg-divider);
+            border-radius: 999px;
+            position: relative;
+        }
+
+        .divider::after {
+            content: "";
+            position: absolute;
+            inset: 20%;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .divider--vertical {
+            cursor: col-resize;
+        }
+
+        .divider--horizontal {
+            cursor: row-resize;
+        }
+
+        .divider.is-active {
+            background: var(--bg-divider-active);
+        }
+
+        /* New: Locking overlay for module mutex */
+        .panel.locked::after {
+            content: ''; 
+            position: absolute; 
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.1); 
+            pointer-events: none; 
+            display: block;
+            z-index: 10;
+        }
+
+        .status-bar {
+            padding: 10px 20px;
+            background: #e2e8f0;
+            font-size: 0.85rem;
+            color: #475569;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media (max-width: 1280px) {
+            :root {
+                --col-tools: 200px;
+                --col-side: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>UI Layout Playground - Grok01 Template</div>
+        <div>拖曳藍色分隔線調整區塊尺寸 | 點擊畫布切換模式</div>
+    </header>
+    <div class="workspace" id="workspace">
+        <!-- Left: Tools/Library, data-role for event targeting -->
+        <section class="panel panel--tools" data-role="tools">
+            <div class="panel-header">Toolkit</div>
+            <div class="panel-body">
+                <div class="tools-list">
+                    <button class="tools-button">Edit Mode</button>
+                    <button class="tools-button">Selection Mode</button>
+                    <button class="tools-button">Asset Drop</button>
+                </div>
+                <!-- CANVA Pages: Add onclick for page switch event -->
+                <div class="scroller" aria-label="Canvas Pages">
+                    <div class="thumb" data-page-id="0">Page 01 (source: manual)</div>
+                    <div class="thumb" data-page-id="1">Page 02 (source: pdf)</div>
+                    <div class="thumb" data-page-id="2">Page 03 (source: template)</div>
+                    <div class="thumb" data-page-id="3">Template A</div>
+                    <div class="thumb" data-page-id="4">Template B</div>
+                    <div class="thumb" data-page-id="5">PDF p.4</div>
+                    <div class="thumb" data-page-id="6">PDF p.5</div>
+                </div>
+                <div class="tools-list" style="margin-top: 16px;">
+                    <button class="tools-button" data-role="bag">BAG / Library (Load Assets)</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider divider--vertical" data-resize="tools"></div>
+
+        <!-- Central: Nested Work Area -->
+        <section class="panel workspace-panel" id="workPanel" data-role="workspace">
+            <!-- Output: Read-only preview, data-role for event listener -->
+            <section class="panel panel--output" data-role="output">
+                <div class="panel-header">CANVA® Output</div>
+                <div class="panel-body">
+                    <canvas id="outputPreview"></canvas> <!-- New: Canvas for snapshot render -->
+                    <p>唯讀預覽區，監聽 'canvas:export' 事件更新 (e.g., PNG/HTML/PDF)。</p>
+                </div>
+            </section>
+
+            <div class="divider divider--horizontal" data-resize="output"></div>
+
+            <!-- Input: Editable canvas, activate module on click -->
+            <section class="panel panel--input" data-role="input">
+                <div class="panel-header">CANVA B Input</div>
+                <div class="panel-body">
+                    <canvas id="canvasInput"></canvas> <!-- New: Main editable canvas -->
+                    <p>主畫布編輯區，點擊激活 'drawing' 模式 (互鎖其他面板)。</p>
+                </div>
+            </section>
+        </section>
+
+        <div class="divider divider--vertical" data-resize="side"></div>
+
+        <!-- Right: Code/Mindmap/Chat -->
+        <aside class="panel panel--side" id="sidePanel" data-role="side">
+            <!-- Mindmap/Code: Toggle mode, data-role -->
+            <section class="panel" data-role="mindmap">
+                <div class="mode-toggle" data-mode="mindmap">Mindmap Mode</div>
+                <div class="mode-toggle" data-mode="code" style="background: #8b5cf6;">Code Mode (Preview)</div>
+                <canvas id="mindmapCanvas" class="mindmap-canvas"></canvas> <!-- New: For node dragging -->
+                <p>心智圖/代碼面板：拖曳節點發 'nodes:changed' 事件，鏡像到 Input。</p>
+                <ul>
+                    <li>節點 A → 對應畫布圖層</li>
+                    <li>節點 B → 文字說明塊</li>
+                    <li>節點 C → 影像資產</li>
+                </ul>
+            </section>
+
+            <div class="divider divider--horizontal" data-resize="chat"></div>
+
+            <!-- Chat/Agent: data-role, input emits event -->
+            <section class="panel" data-role="chat">
+                <div class="panel-header">Chat / Agent</div>
+                <div class="chat-body">
+                    <p>[System] 歡迎使用 Grok01 模板，已注入 SSOT 與事件總線。</p>
+                    <p>[Assistant] 輸入訊息發 'chat:input' 事件，更新 projectState。</p>
+                </div>
+                <textarea class="chat-input" rows="3" placeholder="輸入訊息或指令… (e.g., load PDF)"></textarea>
+            </section>
+        </aside>
+    </div>
+
+    <div class="status-bar" id="statusBar">
+        <span>Tools: 240px | Output: 45% | Side: 320px | Chat: 55% | Active Module: none</span>
+        <span>提示：拖動分隔線測試佈局；點擊面板觀察事件與互鎖。</span>
+    </div>
+
+    <script>
+        // Existing resize logic (unchanged, ~lines 330-432)
+        (function () {
+            const root = document.documentElement;
+            const workspace = document.getElementById('workspace');
+            const workPanel = document.getElementById('workPanel');
+            const sidePanel = document.getElementById('sidePanel');
+            const statusBar = document.getElementById('statusBar');
+
+            const layoutState = {  // Renamed to avoid conflict with projectState
+                toolsWidth: parseFloat(getComputedStyle(root).getPropertyValue('--col-tools')),
+                sideWidth: parseFloat(getComputedStyle(root).getPropertyValue('--col-side')),
+                outputHeightRatio: parsePercentage(getComputedStyle(root).getPropertyValue('--output-track')),
+                sideTopRatio: parsePercentage(getComputedStyle(root).getPropertyValue('--side-top-track'))
+            };
+
+            function parsePercentage(value) {
+                if (!value) return 0.5;
+                const numeric = parseFloat(value);
+                if (value.trim().endsWith('%')) {
+                    return numeric / 100;
+                }
+                return numeric;
+            }
+
+            function formatStatus() {
+                const tools = Math.round(layoutState.toolsWidth);
+                const side = Math.round(layoutState.sideWidth);
+                const output = Math.round(layoutState.outputHeightRatio * 100);
+                const chat = Math.round(layoutState.sideTopRatio * 100);
+                const activeModule = projectState ? projectState.state.activeModule || 'none' : 'none';  // Integrate with SSOT
+                statusBar.firstElementChild.textContent =
+                    `Tools: ${tools}px | Output: ${output}% | Side: ${side}px | Chat: ${chat}% | Active Module: ${activeModule}`;
+            }
+
+            function handlePointerDown(event) {
+                const divider = event.target.closest('.divider');
+                if (!divider) return;
+                event.preventDefault();
+                divider.setPointerCapture(event.pointerId);
+                divider.classList.add('is-active');
+
+                function onMove(e) {
+                    if (divider.dataset.resize === 'tools') {
+                        resizeTools(e);
+                    } else if (divider.dataset.resize === 'side') {
+                        resizeSide(e);
+                    } else if (divider.dataset.resize === 'output') {
+                        resizeOutput(e);
+                    } else if (divider.dataset.resize === 'chat') {
+                        resizeChat(e);
+                    }
+                    formatStatus();
+                }
+
+                function onUp() {
+                    divider.classList.remove('is-active');
+                    divider.releasePointerCapture(event.pointerId);
+                    divider.removeEventListener('pointermove', onMove);
+                    divider.removeEventListener('pointerup', onUp);
+                }
+
+                divider.addEventListener('pointermove', onMove);
+                divider.addEventListener('pointerup', onUp);
+            }
+
+            function resizeTools(e) {
+                const workspaceRect = workspace.getBoundingClientRect();
+                const min = 160;
+                const max = workspaceRect.width - layoutState.sideWidth - 240;
+                const width = Math.min(Math.max(e.clientX - workspaceRect.left, min), max);
+                layoutState.toolsWidth = width;
+                root.style.setProperty('--col-tools', `${width}px`);
+            }
+
+            function resizeSide(e) {
+                const workspaceRect = workspace.getBoundingClientRect();
+                const min = 220;
+                const max = workspaceRect.width - layoutState.toolsWidth - 240;
+                const width = Math.min(Math.max(workspaceRect.right - e.clientX, min), max);
+                layoutState.sideWidth = width;
+                root.style.setProperty('--col-side', `${width}px`);
+            }
+
+            function resizeOutput(e) {
+                const panelRect = workPanel.getBoundingClientRect();
+                const minHeight = 180;
+                const maxHeight = panelRect.height - 220;
+                const height = Math.min(Math.max(e.clientY - panelRect.top, minHeight), maxHeight);
+                layoutState.outputHeightRatio = height / panelRect.height;
+                root.style.setProperty('--output-track', `${layoutState.outputHeightRatio * 100}%`);
+            }
+
+            function resizeChat(e) {
+                const sideRect = sidePanel.getBoundingClientRect();
+                const minHeight = 200;
+                const maxHeight = sideRect.height - 200;
+                const height = Math.min(Math.max(e.clientY - sideRect.top, minHeight), maxHeight);
+                layoutState.sideTopRatio = height / sideRect.height;
+                root.style.setProperty('--side-top-track', `${layoutState.sideTopRatio * 100}%`);
+            }
+
+            document.addEventListener('pointerdown', handlePointerDown);
+            formatStatus();
+        })();
+
+        // New: Simple inline ProjectState (fallback if js/stateManager.js not loaded)
+        // In production, replace with: import { projectState } from './js/stateManager.js';
+        class ProjectState {
+            constructor() {
+                this.state = {
+                    pages: [{ id: 0, sourceType: 'manual', thumbnail: '', content: {} }],  // Init with example
+                    nodes: [{ id: 'A', text: 'Node A', x: 0, y: 0 }],  // Mindmap example
+                    assets: [],  // BAG
+                    currentPageId: 0,
+                    activeModule: null,  // e.g., 'drawing' for locking
+                    outputPayload: { type: 'png', data: null, meta: {} }
+                };
+                this.eventBus = new EventTarget();
+            }
+            update(key, value, payload = {}) {
+                this.state[key] = value;
+                this.eventBus.dispatchEvent(new CustomEvent('state:updated', { detail: { key, value, ...payload } }));
+                formatStatus();  // Refresh status
+            }
+            setActiveModule(module) {
+                this.state.activeModule = module;
+                this.eventBus.dispatchEvent(new CustomEvent('module:locked', { detail: { module } }));
+            }
+            on(event, callback) { this.eventBus.addEventListener(event, callback); }
+            emit(event, payload) { this.eventBus.dispatchEvent(new CustomEvent(event, { detail: payload })); }
+        }
+        const projectState = new ProjectState();
+
+        // New: Event listeners for independence (inject modules here)
+        // Example: Page switch from left thumb
+        document.querySelectorAll('.thumb').forEach(thumb => {
+            thumb.addEventListener('click', (e) => {
+                const id = parseInt(e.target.dataset.pageId);
+                projectState.update('currentPageId', id);
+                projectState.emit('page:switched', { id, sourceType: e.target.textContent.includes('PDF') ? 'pdf' : 'manual' });
+                // Future: Load PDF pages to projectState.state.pages via utils.js
+                console.log('Page switched:', id);  // Test log
+            });
+        });
+
+        // Input click: Activate drawing module (mutex)
+        document.getElementById('canvasInput').addEventListener('click', () => {
+            projectState.setActiveModule('drawing');
+            // Emit to modules: e.g., CanvasInput.js start drawing
+        });
+
+        // Mode toggle: Switch mindmap/code
+        document.querySelectorAll('[data-mode]').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                const mode = e.target.dataset.mode;
+                projectState.setActiveModule(mode);
+                // Toggle class: e.g., show code-preview or mindmapCanvas
+                document.querySelector('.mindmap-canvas').classList.toggle('code-preview', mode === 'code');
+            });
+        });
+
+        // Chat input: Emit event (independent)
+        document.querySelector('.chat-input').addEventListener('input', (e) => {
+            projectState.emit('chat:input', { message: e.target.value });
+            // Future: api.js call /chat, update state
+        });
+
+        // BAG button: Load assets example
+        document.querySelector('[data-role="bag"]').addEventListener('click', () => {
+            projectState.update('assets', [...projectState.state.assets, { id: 'new', type: 'img' }]);
+            projectState.emit('assets:loaded', { ids: ['new'] });
+        });
+
+        // Module locking: Listen and apply overlay
+        projectState.on('module:locked', (e) => {
+            const module = e.detail.module;
+            document.querySelectorAll('.panel[data-role]').forEach(panel => {
+                panel.classList.toggle('locked', panel.dataset.role !== module);  // Lock others
+            });
+            // e.g., If 'output', disable Input pointer-events
+        });
+
+        // Output update: Listen canvas:export (from drawing.js)
+        projectState.on('canvas:export', (e) => {
+            const canvas = document.getElementById('outputPreview');
+            const img = new Image();
+            img.onload = () => { canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height); };
+            img.src = e.detail.data;  // e.g., toDataURL()
+            projectState.state.outputPayload = e.detail;
+        });
+
+        // Nodes changed: Mirror to Input (from MindmapEditor.js)
+        projectState.on('nodes:changed', (e) => {
+            // Future: drawing.js renderNodes(e.detail.nodes)
+            console.log('Mirror nodes to canvas:', e.detail.nodes);
+        });
+
+        // Init: Load initial state (e.g., from localStorage or backend)
+        projectState.update('pages', projectState.state.pages);  // Trigger initial render
+        console.log('Grok01 Template loaded: SSOT ready, events active.');
+    </script>
+</body>
+</html>

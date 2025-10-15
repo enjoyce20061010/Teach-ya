@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Layout Playground</title>
+    <style>
+        :root {
+            --col-tools: 240px;
+            --col-side: 320px;
+            --output-track: 45%;
+            --side-top-track: 55%;
+            --divider-size: 10px;
+            --panel-radius: 12px;
+            --panel-gap: 12px;
+            --bg-body: #f3f4f6;
+            --bg-panel: #ffffff;
+            --bg-divider: #d0d5dd;
+            --bg-divider-active: #2563eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+            background: var(--bg-body);
+            color: #1f2937;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 16px 24px;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 1.1rem;
+            letter-spacing: 0.03em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .workspace {
+            flex: 1;
+            display: grid;
+            grid-template-columns: var(--col-tools) var(--divider-size) 1fr var(--divider-size) var(--col-side);
+            grid-template-rows: 100%;
+            gap: var(--panel-gap);
+            padding: 16px 20px 24px;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border-radius: var(--panel-radius);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .panel-header {
+            padding: 12px 16px;
+            font-weight: 600;
+            background: #0f172a;
+            color: #f8fafc;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .panel-body {
+            padding: 16px;
+            flex: 1;
+            overflow: auto;
+        }
+
+        .tools-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .tools-button {
+            padding: 10px 12px;
+            border: 1px solid #cbd5f5;
+            background: #eff6ff;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .tools-button:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
+
+        .scroller {
+            margin-top: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 8px;
+            max-height: 320px;
+            overflow: auto;
+            display: grid;
+            gap: 8px;
+        }
+
+        .thumb {
+            background: linear-gradient(135deg, #c4d2ff, #a5b4fc);
+            border-radius: 8px;
+            aspect-ratio: 4 / 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f2937;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .workspace-panel {
+            display: grid;
+            grid-template-rows: minmax(180px, var(--output-track)) var(--divider-size) 1fr;
+            gap: var(--panel-gap);
+        }
+
+        .panel--output,
+        .panel--input {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel--output .panel-body,
+        .panel--input .panel-body {
+            background: #f8fafc;
+            border-radius: 0 0 var(--panel-radius) var(--panel-radius);
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .panel--output placeholder,
+        .panel--input placeholder {
+            font-style: italic;
+        }
+
+        .panel--side {
+            display: grid;
+            grid-template-rows: minmax(220px, var(--side-top-track)) var(--divider-size) 1fr;
+            gap: var(--panel-gap);
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #0ea5e9;
+            color: #f0f9ff;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .mode-indicator {
+            margin-left: auto;
+            font-size: 0.85rem;
+            opacity: 0.85;
+        }
+
+        .mindmap-canvas,
+        .code-preview {
+            flex: 1;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 16px;
+            font-family: "Fira Code", "Courier New", monospace;
+            overflow: auto;
+        }
+
+        .chat-body {
+            padding: 16px;
+            background: #f8fafc;
+            flex: 1;
+            overflow: auto;
+        }
+
+        .chat-input {
+            padding: 12px;
+            border: 1px solid #cbd5f5;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-family: inherit;
+            width: 100%;
+            resize: vertical;
+        }
+
+        .divider {
+            background: var(--bg-divider);
+            border-radius: 999px;
+            position: relative;
+        }
+
+        .divider::after {
+            content: "";
+            position: absolute;
+            inset: 20%;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .divider--vertical {
+            cursor: col-resize;
+        }
+
+        .divider--horizontal {
+            cursor: row-resize;
+        }
+
+        .divider.is-active {
+            background: var(--bg-divider-active);
+        }
+
+        .status-bar {
+            padding: 10px 20px;
+            background: #e2e8f0;
+            font-size: 0.85rem;
+            color: #475569;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media (max-width: 1280px) {
+            :root {
+                --col-tools: 200px;
+                --col-side: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>UI Layout Playground</div>
+        <div>拖曳藍色分隔線調整區塊尺寸</div>
+    </header>
+    <div class="workspace" id="workspace">
+        <section class="panel panel--tools">
+            <div class="panel-header">Toolkit</div>
+            <div class="panel-body">
+                <div class="tools-list">
+                    <button class="tools-button">Edit Mode</button>
+                    <button class="tools-button">Selection Mode</button>
+                    <button class="tools-button">Asset Drop</button>
+                </div>
+                <div class="scroller" aria-label="Canvas Pages">
+                    <div class="thumb">Page 01</div>
+                    <div class="thumb">Page 02</div>
+                    <div class="thumb">Page 03</div>
+                    <div class="thumb">Template A</div>
+                    <div class="thumb">Template B</div>
+                    <div class="thumb">PDF p.4</div>
+                    <div class="thumb">PDF p.5</div>
+                </div>
+                <div class="tools-list" style="margin-top: 16px;">
+                    <button class="tools-button">BAG / Library</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider divider--vertical" data-resize="tools"></div>
+
+        <section class="panel workspace-panel" id="workPanel">
+            <section class="panel panel--output">
+                <div class="panel-header">CANVA® Output</div>
+                <div class="panel-body">
+                    <p>唯讀預覽區，顯示匯出的影像、HTML、或 PDF 頁面。</p>
+                    <p>可用於檢查不同裝置尺寸或版本快照。</p>
+                </div>
+            </section>
+
+            <div class="divider divider--horizontal" data-resize="output"></div>
+
+            <section class="panel panel--input">
+                <div class="panel-header">CANVA B Input</div>
+                <div class="panel-body">
+                    <p>主畫布編輯區，可切換手繪、匯入圖像、影片框架或文字方塊。</p>
+                    <p>拖曳、縮放、佈局等操作皆在此區進行。</p>
+                </div>
+            </section>
+        </section>
+
+        <div class="divider divider--vertical" data-resize="side"></div>
+
+        <aside class="panel panel--side" id="sidePanel">
+            <section class="panel">
+                <div class="mode-toggle">
+                    Mindmap Mode
+                    <span class="mode-indicator">拖曳節點調整結構</span>
+                </div>
+                <div class="mindmap-canvas">
+                    <p>心智圖節點列表 / 畫布預留區。</p>
+                    <ul>
+                        <li>節點 A → 對應畫布圖層</li>
+                        <li>節點 B → 文字說明塊</li>
+                        <li>節點 C → 影像資產</li>
+                    </ul>
+                </div>
+            </section>
+
+            <div class="divider divider--horizontal" data-resize="chat"></div>
+
+            <section class="panel">
+                <div class="panel-header">Chat / Agent</div>
+                <div class="chat-body">
+                    <p>[System] 歡迎使用 UI 調整測試頁面。</p>
+                    <p>[Assistant] 這裡可以預留對話、指令或工作日誌。</p>
+                </div>
+                <textarea class="chat-input" rows="3" placeholder="輸入訊息或指令…"></textarea>
+            </section>
+        </aside>
+    </div>
+
+    <div class="status-bar" id="statusBar">
+        <span>Tools: 240px | Output: 45% | Side: 320px | Chat: 55%</span>
+        <span>提示：拖動分隔線以測試彈性佈局。</span>
+    </div>
+
+    <script>
+        (function () {
+            const root = document.documentElement;
+            const workspace = document.getElementById('workspace');
+            const workPanel = document.getElementById('workPanel');
+            const sidePanel = document.getElementById('sidePanel');
+            const statusBar = document.getElementById('statusBar');
+
+            const state = {
+                toolsWidth: parseFloat(getComputedStyle(root).getPropertyValue('--col-tools')),
+                sideWidth: parseFloat(getComputedStyle(root).getPropertyValue('--col-side')),
+                outputHeightRatio: parsePercentage(getComputedStyle(root).getPropertyValue('--output-track')),
+                sideTopRatio: parsePercentage(getComputedStyle(root).getPropertyValue('--side-top-track'))
+            };
+
+            function parsePercentage(value) {
+                if (!value) return 0.5;
+                const numeric = parseFloat(value);
+                if (value.trim().endsWith('%')) {
+                    return numeric / 100;
+                }
+                return numeric;
+            }
+
+            function formatStatus() {
+                const tools = Math.round(state.toolsWidth);
+                const side = Math.round(state.sideWidth);
+                const output = Math.round(state.outputHeightRatio * 100);
+                const chat = Math.round(state.sideTopRatio * 100);
+                statusBar.firstElementChild.textContent =
+                    `Tools: ${tools}px | Output: ${output}% | Side: ${side}px | Chat: ${chat}%`;
+            }
+
+            function handlePointerDown(event) {
+                const divider = event.target.closest('.divider');
+                if (!divider) return;
+                event.preventDefault();
+                divider.setPointerCapture(event.pointerId);
+                divider.classList.add('is-active');
+
+                function onMove(e) {
+                    if (divider.dataset.resize === 'tools') {
+                        resizeTools(e);
+                    } else if (divider.dataset.resize === 'side') {
+                        resizeSide(e);
+                    } else if (divider.dataset.resize === 'output') {
+                        resizeOutput(e);
+                    } else if (divider.dataset.resize === 'chat') {
+                        resizeChat(e);
+                    }
+                    formatStatus();
+                }
+
+                function onUp() {
+                    divider.classList.remove('is-active');
+                    divider.releasePointerCapture(event.pointerId);
+                    divider.removeEventListener('pointermove', onMove);
+                    divider.removeEventListener('pointerup', onUp);
+                }
+
+                divider.addEventListener('pointermove', onMove);
+                divider.addEventListener('pointerup', onUp);
+            }
+
+            function resizeTools(e) {
+                const workspaceRect = workspace.getBoundingClientRect();
+                const min = 160;
+                const max = workspaceRect.width - state.sideWidth - 240;
+                const width = Math.min(Math.max(e.clientX - workspaceRect.left, min), max);
+                state.toolsWidth = width;
+                root.style.setProperty('--col-tools', `${width}px`);
+            }
+
+            function resizeSide(e) {
+                const workspaceRect = workspace.getBoundingClientRect();
+                const min = 220;
+                const max = workspaceRect.width - state.toolsWidth - 240;
+                const width = Math.min(Math.max(workspaceRect.right - e.clientX, min), max);
+                state.sideWidth = width;
+                root.style.setProperty('--col-side', `${width}px`);
+            }
+
+            function resizeOutput(e) {
+                const panelRect = workPanel.getBoundingClientRect();
+                const minHeight = 180;
+                const maxHeight = panelRect.height - 220;
+                const height = Math.min(Math.max(e.clientY - panelRect.top, minHeight), maxHeight);
+                state.outputHeightRatio = height / panelRect.height;
+                root.style.setProperty('--output-track', `${state.outputHeightRatio * 100}%`);
+            }
+
+            function resizeChat(e) {
+                const sideRect = sidePanel.getBoundingClientRect();
+                const minHeight = 200;
+                const maxHeight = sideRect.height - 200;
+                const height = Math.min(Math.max(e.clientY - sideRect.top, minHeight), maxHeight);
+                state.sideTopRatio = height / sideRect.height;
+                root.style.setProperty('--side-top-track', `${state.sideTopRatio * 100}%`);
+            }
+
+            document.addEventListener('pointerdown', handlePointerDown);
+            formatStatus();
+        })();
+    </script>
+</body>
+</html>
